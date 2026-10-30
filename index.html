@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="theme-color" content="#f8f0e9">
+    <meta name="description" content="어젯밤부터 오늘까지, 민서의 마음 탐험. 예나를 위한 작은 이야기.">
+    <title>예나 마음 탐험기</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="preload" href="public/fonts/PretendardVariable.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="styles.css">
+    <script src="data/story.js" defer></script>
+    <script src="data/story-illustrations.js" defer></script>
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="#" id="home-link" aria-label="예나 마음 탐험기, 처음 화면으로">예나 마음 탐험기</a>
+      <button class="icon-button" id="help-button" aria-label="게임 안내 열기">?</button>
+    </header>
+    <main id="app" tabindex="-1"></main>
+    <nav id="mobile-controls" class="mobile-controls" aria-label="이야기 이동" hidden></nav>
+    <footer class="site-footer"><span>민서가 예나에게</span><span>2026. 10. 29 — 10. 30</span></footer>
+    <dialog id="help-dialog" aria-labelledby="help-title">
+      <button class="dialog-close icon-button" data-close-dialog aria-label="안내 닫기">×</button>
+      <h2 id="help-title">천천히, 예나의 속도로.</h2>
+      <p>어젯밤부터 오늘 아침까지의 15개 순간을<br>함께 돌아보는 게임이야.<br>어떤 답을 골라도 괜찮아.<br>다른 마음이었다면 직접 적어줘도 돼.<br>이전 장면으로 돌아가 답을 바꿀 수 있어.</p>
+      <button class="primary-button" data-close-dialog>알겠어 ♡</button>
+    </dialog>
+    <dialog id="reset-dialog" aria-labelledby="reset-title">
+      <h2 id="reset-title">다시 처음부터 걸어볼까?</h2>
+      <p>이 기기에 저장된 답변과 진행 상황이 지워져.</p>
+      <div class="dialog-actions"><button class="secondary-button" data-close-dialog>그대로 둘래</button><button class="primary-button" id="confirm-reset">기록 지우기</button></div>
+    </dialog>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <noscript><p class="noscript">게임을 플레이하려면 브라우저에서 JavaScript를 켜주세요.</p></noscript>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+{
+  "name": "yenas-little-story",
+  "private": true,
+  "version": "1.0.0",
+  "description": "예나를 위한 선택형 연애 스토리 게임 — HTML, CSS, JavaScript",
+  "scripts": {
+    "dev": "node scripts/serve.mjs",
+    "build": "node scripts/build.mjs",
+    "check": "node --check app.js && node --check data/story.js && node scripts/check.mjs"
+  }
+}
