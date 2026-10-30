@@ -21,14 +21,13 @@
     <main id="app" tabindex="-1"></main>
     <nav id="mobile-controls" class="mobile-controls" aria-label="이야기 이동" hidden></nav>
     <footer class="site-footer"><span>민서가 예나에게</span><span>2026. 10. 29 — 10. 30</span></footer>
-    <dialog id="help-dialog" aria-labelledby="help-title">
-      <button class="dialog-close icon-button" data-close-dialog aria-label="안내 닫기">×</button>
+    <dialog id="help-dialog" aria-labelledby="help-title" closedby="none">
       <h2 id="help-title">천천히, 예나의 속도로.</h2>
       <p>어젯밤부터 오늘 아침까지의 15개 순간을<br>함께 돌아보는 게임이야.<br>어떤 답을 골라도 괜찮아.<br>다른 마음이었다면 직접 적어줘도 돼.<br>이전 장면으로 돌아가 답을 바꿀 수 있어.</p>
       <button class="primary-button" data-close-dialog>알겠어 ♡</button>
     </dialog>
     <dialog id="reset-dialog" aria-labelledby="reset-title">
-      <h2 id="reset-title">다시 처음부터 걸어볼까?</h2>
+      <h2 id="reset-title" tabindex="-1" autofocus>다시 처음부터 걸어볼까?</h2>
       <p>이 기기에 저장된 답변과 진행 상황이 지워져.</p>
       <div class="dialog-actions"><button class="secondary-button" data-close-dialog>그대로 둘래</button><button class="primary-button" id="confirm-reset">기록 지우기</button></div>
     </dialog>
