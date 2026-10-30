@@ -271,7 +271,9 @@
     updateAnswerUI(question);
   });
   document.getElementById('home-link').addEventListener('click', event => { event.preventDefault(); go('home'); });
-  document.getElementById('help-button').addEventListener('click', () => document.getElementById('help-dialog').showModal());
+  const helpDialog = document.getElementById('help-dialog');
+  helpDialog.addEventListener('cancel', event => event.preventDefault());
+  document.getElementById('help-button').addEventListener('click', () => helpDialog.showModal());
   document.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => button.closest('dialog').close()));
   document.getElementById('confirm-reset').addEventListener('click', () => {
     state = defaultState();
