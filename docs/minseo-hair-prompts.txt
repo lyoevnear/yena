@@ -1,0 +1,14 @@
+Built-in imagegen. Minseo hair correction: natural black, slightly shorter see-through dandy.
+
+Homepage transparent cutout:
+Use case: identity-preserve
+Edit target: the attached transparent cutout of the adult couple Yena on left and Minseo on right.
+Change ONLY the MAN MINSEO'S HAIR: recolor his brown hair to true natural BLACK, with subtle neutral charcoal highlights (no brown). Trim the current hair length only slightly, approximately 10–15%, particularly tidy around the ears and nape, and slightly shorter wispy fringe. Preserve the same Korean see-through dandy haircut with fine separated front strands falling forward and a little forehead visible. Do not turn it into slicked-back hair, a buzzcut, or heavy blunt bangs.
+Keep EVERYTHING else unchanged: the exact adult faces, expressions, skin tones, poses, body proportions, Yena's brown no-bangs hair, all clothing patterns/colors/textures, hands and bare feet, composition, canvas size and 2D illustration style. Do not change the man's face or eyebrows. Keep both entire figures visible.
+Preserve genuine transparent alpha background, with no white rectangle, no matte, no colored halo, no heart or shadows. Only edit Minseo's hair.
+
+Character reference sheet:
+Use case: identity-preserve
+Edit target: existing YENA/MINSEO character model sheet.
+Change ONLY MINSEO'S HAIR in EVERY male portrait and full-body view: true natural BLACK hair with subtle neutral charcoal highlights, no brown. Shorten the existing hairstyle slightly by about 10–15%, tidying hair around ears and nape, slightly shortening the fine front fringe. Keep the Korean see-through dandy haircut, front strands falling naturally forward and slightly revealing forehead; no slicked-back hairstyle, no buzz cut or blunt heavy bangs.
+Keep EVERYTHING ELSE unchanged: all male facial features and expressions, eye/eyebrow color, adult body proportions, poses, navy elephant fleece pajamas and prints; all female figures, faces, brown no-bangs long hair, cream blue-flower nightdress and outdoor variant; exact layout, labels, swatches, cream paper background, original 2D rendering and all colors besides male hair. Do not change faces, clothes or composition.

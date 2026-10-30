@@ -1,0 +1,21 @@
+// Optional maintenance step after changing fixed handwritten copy. Requires network, not used at runtime/build.
+import { readFile, writeFile } from 'node:fs/promises';
+import { runInNewContext } from 'node:vm';
+const sandbox = { window: {} };
+runInNewContext(await readFile('data/story.js', 'utf8'), sandbox);
+const text = [...new Set(sandbox.window.YENA_STORY.letter + '💌 민서가 예나에게 보내는 편지 To. 예나 ♡ ♥')].join('');
+const url = new URL('https://fonts.googleapis.com/css2');
+url.searchParams.set('family', 'Gaegu');
+url.searchParams.set('text', text);
+const response = await fetch(url);
+if (!response.ok) throw new Error(`Font stylesheet failed: ${response.status}`);
+const css = await response.text();
+const source = css.match(/url\(([^)]+)\).*?format\('truetype'\)/);
+if (!source) throw new Error('Expected a TrueType response from Google Fonts.');
+const font = await fetch(source[1]);
+if (!font.ok) throw new Error(`Font file failed: ${font.status}`);
+const bytes = Buffer.from(await font.arrayBuffer());
+if (bytes.readUInt32BE(0) !== 0x00010000) throw new Error('Downloaded file is not a TrueType font.');
+await writeFile('public/fonts/Gaegu-letter.ttf', bytes);
+await writeFile('public/fonts/letter-characters.txt', text);
+console.log(`Letter font refreshed: ${bytes.length} bytes for ${[...text].length} unique characters.`);

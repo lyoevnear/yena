@@ -1,0 +1,143 @@
+// Optional browser QA: npm install --prefix .qa --cache .qa/npm-cache --no-save --package-lock=false playwright
+import assert from 'node:assert/strict';
+import { mkdir, readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+process.env.PLAYWRIGHT_BROWSERS_PATH ||= resolve('.qa/browsers');
+const { chromium } = await import('../.qa/node_modules/playwright/index.mjs');
+await mkdir('test-results', { recursive: true });
+const browser = await chromium.launch({ headless: true });
+const failures = [];
+const base = 'http://localhost:3000';
+const context = await browser.newContext({ viewport: { width: 1440, height: 1000 }, reducedMotion: 'reduce' });
+const page = await context.newPage();
+page.on('pageerror', error => failures.push(error.message));
+page.on('response', response => { if (response.status() >= 400) failures.push(`${response.status()} ${response.url()}`); });
+await page.goto(base);
+await page.evaluate(() => document.fonts.ready);
+assert.equal(await page.locator('h1').innerText(), '예나\n마음 탐험기');
+assert.ok(await page.evaluate(() => document.fonts.check('18px Pretendard')));
+assert.ok((await page.locator('body').evaluate(el => getComputedStyle(el).fontFamily)).startsWith('Pretendard'));
+assert.equal(await page.getByText('A LITTLE LOVE ADVENTURE').count(), 0);
+assert.equal(await page.getByText('our little story').count(), 0);
+assert.equal(await page.locator('.art-caption span').nth(1).textContent(), '♥');
+const cutout = await page.locator('.couple-cutout').evaluate(async img => {
+  await img.decode();
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+  const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0);
+  return { blend: getComputedStyle(img).mixBlendMode, cornerAlpha: ctx.getImageData(0,0,1,1).data[3], outerAlpha: ctx.getImageData(20,750,1,1).data[3], figureAlpha: ctx.getImageData(700,500,1,1).data[3] };
+});
+assert.equal(cutout.blend, 'normal');
+assert.equal(cutout.cornerAlpha, 0);
+assert.equal(cutout.outerAlpha, 0);
+assert.ok(cutout.figureAlpha >= 250);
+await page.screenshot({ path: 'test-results/home-desktop.png', fullPage: true });
+await page.getByRole('button', { name: '게임 안내 열기' }).click();
+assert.equal(await page.locator('#help-dialog').evaluate(dialog => dialog.open), true);
+await page.getByRole('button', { name: '알겠어 ♡' }).click();
+await page.locator('[data-action="start"]').click();
+assert.equal(await page.locator('.story-copy p').first().innerText(), '예나는 밤 11시까지 회사에서 야근을 했어.\n하루가 참 길었지.');
+assert.equal(await page.locator('.story-copy p').nth(1).locator('br').count(), 1);
+assert.equal(await page.locator('.story-copy p').first().evaluate(el => getComputedStyle(el).fontSize), '20px');
+assert.equal(await page.locator('.choice').first().evaluate(el => getComputedStyle(el).fontSize), '18px');
+assert.equal(await page.locator('[data-action="next"]:visible').isDisabled(), true);
+await page.locator('[data-action="back"]:visible').click();
+await page.locator('[data-action="start"]').click();
+await page.locator('label[for="choice-3"]').click();
+assert.equal(await page.locator('[data-action="next"]:visible').isDisabled(), true);
+await page.locator('#custom-answer').fill('   ');
+assert.equal(await page.locator('[data-action="next"]:visible').isDisabled(), true);
+const text = '<img src=x onerror="window.hacked=true"> 내 마음도 들어줘 ♡';
+await page.locator('#custom-answer').fill(text);
+await page.reload();
+assert.equal(await page.locator('#custom-answer').inputValue(), text);
+await page.locator('[data-action="next"]:visible').click();
+await page.locator('[data-action="back"]:visible').click();
+assert.equal(await page.locator('#custom-answer').inputValue(), text);
+await page.locator('[data-action="next"]:visible').click();
+for (let i = 1; i < 15; i++) {
+  assert.equal(await page.locator('.story-copy .eyebrow').innerText(), `${i + 1}번째 이야기`);
+  await page.locator('.scene-image').waitFor({ state: 'visible' });
+  assert.ok(await page.locator('.scene-image').evaluate((img, n) => img.src.endsWith(`/assets/${n}.png`) && img.naturalWidth > 0, i + 1));
+  assert.equal(await page.locator('.scene-fallback, .scene-symbol, .scene-place').count(), 0);
+  assert.ok(await page.locator('.scene-art').evaluate(el => {
+    const first = window.YENA_ILLUSTRATIONS.scenes[0];
+    const frame = el.getBoundingClientRect();
+    return Math.abs(frame.height - frame.width * first.height / first.width) < 1;
+  }), 'Every image frame uses story 1 height');
+  assert.equal(await page.locator('.scene-image').evaluate(img => getComputedStyle(img).objectFit), 'contain');
+  const sourceParagraphs = await page.evaluate(index => window.YENA_STORY.scenes[index].paragraphs, i);
+  for (let paragraph = 0; paragraph < sourceParagraphs.length; paragraph++) {
+    const text = await page.locator('.story-copy p').nth(paragraph).innerText();
+    assert.equal(text.replace(/\s+/g, ' '), sourceParagraphs[paragraph].replace(/\s+/g, ' '), 'Sentence breaks preserve original wording');
+  }
+  await page.locator('label[for="choice-0"]').click();
+  if (i === 4) await page.screenshot({ path: 'test-results/story-desktop.png', fullPage: true });
+  await page.locator('[data-action="next"]:visible').click();
+}
+assert.ok((await page.locator('h1').innerText()).includes('어떻게 해줄까?'));
+assert.equal(await page.locator('[data-action="next"]:visible').isDisabled(), true);
+await page.locator('label[for="choice-4"]').click();
+await page.locator('#custom-answer').fill('一緒にゆっくり 이야기하자 💗');
+await page.locator('[data-action="next"]:visible').click();
+assert.equal(await page.locator('.letter-paper').isHidden(), true);
+assert.equal(await page.locator('[data-action="share"]').count(), 0);
+await page.getByText('마음을 열어볼래?', { exact: true }).click();
+assert.equal(await page.locator('.letter-paper').isHidden(), true, 'Hint text must not open the envelope');
+await page.locator('[data-action="open-letter"]').click();
+await page.evaluate(() => document.fonts.ready);
+assert.ok(await page.evaluate(() => document.fonts.check('28px Gaegu')));
+assert.ok((await page.locator('.letter-body').evaluate(el => getComputedStyle(el).fontFamily)).startsWith('Gaegu'));
+const data = await readFile('data/story.js', 'utf8');
+assert.ok(data.includes(await page.locator('.letter-body').innerText()), 'Letter must match source verbatim');
+await page.locator('summary').click();
+assert.equal(await page.locator('.answer-summary li').count(), 16);
+assert.equal(await page.evaluate(() => window.hacked), undefined);
+assert.ok((await page.locator('.answer-summary').innerText()).includes(text));
+assert.equal(await page.locator('[data-action="copy"], [data-action="share"], .share-actions, .share-hint').count(), 0);
+await page.reload();
+assert.equal(await page.locator('.letter-paper').isVisible(), true);
+await page.screenshot({ path: 'test-results/letter-desktop.png', fullPage: true });
+for (const width of [320, 360, 390, 430, 768, 1024]) {
+  await page.setViewportSize({ width, height: 844 });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `Letter overflow at ${width}`);
+}
+await page.setViewportSize({ width: 390, height: 844 });
+await page.screenshot({ path: 'test-results/letter-mobile.png', fullPage: true });
+await page.locator('[data-action="revisit"]').click();
+assert.equal(await page.locator('#custom-answer').inputValue(), text);
+await page.screenshot({ path: 'test-results/story-mobile.png', fullPage: true });
+for (const width of [320, 360, 390, 430, 768, 1024]) {
+  await page.setViewportSize({ width, height: 844 });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `Story overflow at ${width}`);
+  assert.ok(await page.locator('.story-copy p').first().evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 17));
+  assert.ok(await page.locator('.choice').first().evaluate(el => parseFloat(getComputedStyle(el).fontSize) >= 16));
+  assert.equal(await page.locator('.response-box, .save-note').count(), 0);
+}
+await page.locator('#home-link').click();
+for (const width of [320, 360, 390, 430, 600, 768, 1024]) {
+  await page.setViewportSize({ width, height: 844 });
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false, `Home overflow at ${width}`);
+}
+await page.setViewportSize({ width: 390, height: 844 });
+await page.screenshot({ path: 'test-results/home-mobile.png', fullPage: true });
+await page.locator('[data-action="reset"]').click();
+await page.locator('#confirm-reset').click();
+assert.equal(await page.evaluate(() => localStorage.getItem('yena-little-story-v1')), null);
+await page.locator('[data-action="start"]').click();
+assert.equal(await page.locator('[data-action="next"]:visible').isDisabled(), true);
+await page.locator('.scene-image').waitFor({ state: 'visible' });
+assert.ok(await page.locator('.scene-image').evaluate(img => img.src.endsWith('/assets/1.png') && img.naturalWidth > 0));
+const blockedContext = await browser.newContext();
+await blockedContext.addInitScript(() => Object.defineProperty(window, 'localStorage', { get() { throw new Error('Storage disabled'); } }));
+const blocked = await blockedContext.newPage();
+blocked.on('pageerror', e => failures.push(e.message));
+await blocked.goto(base);
+await blocked.locator('[data-action="start"]').click();
+await blocked.locator('label[for="choice-0"]').click();
+await blocked.locator('[data-action="next"]:visible').click();
+assert.equal(await blocked.locator('.story-copy .eyebrow').innerText(), '2번째 이야기');
+await blockedContext.close();
+await browser.close();
+assert.deepEqual(failures, [], 'No page errors or failed HTTP requests');
+console.log('Browser QA passed: 15 events + final wish + letter, input, persistence, text safety, reset, mobile layouts, removed reactions/sharing, hint has no action, and illustration connection.');
